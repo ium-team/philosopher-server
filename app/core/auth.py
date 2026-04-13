@@ -7,6 +7,8 @@ from jwt import InvalidTokenError, PyJWKClient
 
 from app.core.config import get_settings
 
+SUPPORTED_JWT_ALGORITHMS = ["RS256", "ES256"]
+
 
 def _build_jwks_url(supabase_url: str) -> str:
     return f"{supabase_url}/auth/v1/.well-known/jwks.json"
@@ -33,7 +35,7 @@ def verify_supabase_access_token(token: str) -> dict[str, Any]:
         return jwt.decode(
             token,
             signing_key,
-            algorithms=["RS256"],
+            algorithms=SUPPORTED_JWT_ALGORITHMS,
             audience=settings.supabase_jwt_audience,
             issuer=issuer,
         )
