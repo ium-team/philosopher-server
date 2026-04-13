@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     api_v1_prefix: str = "/api/v1"
     secret_key: str = ""
     database_url: str | None = None
+    supabase_url: str | None = None
+    supabase_jwt_audience: str = "authenticated"
     cors_origins: list[str] = []
 
     model_config = SettingsConfigDict(
@@ -38,6 +40,14 @@ class Settings(BaseSettings):
         if value is None:
             return None
         cleaned = value.strip()
+        return cleaned or None
+
+    @field_validator("supabase_url", mode="before")
+    @classmethod
+    def normalize_supabase_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = value.strip().rstrip("/")
         return cleaned or None
 
     @model_validator(mode="after")

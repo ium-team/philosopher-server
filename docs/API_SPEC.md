@@ -15,7 +15,7 @@
 ## 2. 공통 규약
 
 - 콘텐츠 타입: `application/json`
-- 인증: 현재 없음
+- 인증: `GET /api/v1/me`는 `Authorization: Bearer <Supabase Access Token>` 필요
 - 공통 응답 포맷: 현재는 엔드포인트별 단순 JSON 응답 사용
 
 ## 3. 엔드포인트 명세
@@ -80,6 +80,38 @@ curl -X GET http://localhost:8000/health
 
 ```bash
 curl -X GET http://localhost:8000/api/v1/health
+```
+
+### 3.3 `GET /api/v1/me`
+
+현재 로그인한 사용자 정보를 반환합니다.
+
+- Method: `GET`
+- Path: `/api/v1/me`
+- Header: `Authorization: Bearer <access_token>`
+
+성공 응답:
+
+- Status Code: `200 OK`
+- Body:
+
+```json
+{
+  "id": "b6450d8d-1748-4364-8a1a-6e6ce6d8ce64",
+  "email": "user@example.com",
+  "role": "authenticated"
+}
+```
+
+오류 응답:
+
+- Status Code: `401 Unauthorized`
+- Body:
+
+```json
+{
+  "detail": "Authorization bearer token is required"
+}
 ```
 
 ## 4. 자동 생성 OpenAPI 문서

@@ -24,6 +24,8 @@ uvicorn app.main:app --host 0.0.0.0 --port $PORT
 - `ENV=prod`
 - `PORT` (Render에서 자동 주입)
 - `DATABASE_URL` (Supabase Postgres 연결 문자열)
+- `SUPABASE_URL` (예: `https://<project-ref>.supabase.co`)
+- `SUPABASE_JWT_AUDIENCE` (기본값 `authenticated`)
 - `SECRET_KEY`
 - `CORS_ORIGINS` (쉼표 구분 또는 JSON 배열 형태)
 
