@@ -1,4 +1,4 @@
-# 서버 기본 아키텍처 가이드
+# FastAPI 서버 아키텍처 가이드
 
 ## 1. 목표
 
@@ -13,26 +13,36 @@
 - `명시적 계약`: 계층 간 DTO/인터페이스를 문서화하고 버전 관리한다.
 - `실패 우선 설계`: 예외/타임아웃/재시도를 정상 흐름처럼 설계한다.
 
-## 3. 권장 계층 구조
+## 3. 권장 계층 구조 (FastAPI)
 
-아래 구조는 언어/프레임워크와 무관하게 유지할 수 있는 최소 기준입니다.
+아래 구조를 기본값으로 사용합니다.
 
 ```text
-src/
-  domain/          # 엔티티, 값 객체, 도메인 서비스, 도메인 이벤트
-  application/     # 유스케이스, 커맨드/쿼리, 트랜잭션 경계
-  interfaces/      # HTTP/gRPC/메시지 핸들러, 요청/응답 매핑
-  infrastructure/  # DB, 외부 API, 캐시, 큐, 파일 스토리지 구현체
-  shared/          # 공통 유틸, 에러 코드, 로깅/추적 어댑터
+app/
+  main.py                    # FastAPI 앱 진입점
+  api/
+    v1/
+      routers/               # 라우터(엔드포인트 정의)
+      schemas/               # 요청/응답 Pydantic 스키마
+  domain/                    # 엔티티, 값 객체, 도메인 서비스
+  application/               # 유스케이스, 트랜잭션 경계
+  infrastructure/
+    db/                      # SQLAlchemy 세션, 모델, 리포지토리 구현
+    external/                # 외부 API/스토리지 어댑터
+  core/                      # 설정, 보안, 로깅, 예외 핸들러
+tests/
+  unit/
+  integration/
+  e2e/
 ```
 
 ## 4. 요청 처리 흐름
 
-1. `interfaces` 계층에서 인증/인가/검증을 수행한다.
+1. FastAPI 라우터에서 인증/인가/검증을 수행한다.
 2. `application` 유스케이스가 트랜잭션 경계를 연다.
 3. 유스케이스가 `domain` 모델을 호출해 비즈니스 규칙을 실행한다.
 4. 영속성/외부 연동은 `infrastructure` 포트를 통해 수행한다.
-5. 응답은 `interfaces`에서 API 계약 형태로 직렬화한다.
+5. 응답은 Pydantic 스키마로 직렬화한다.
 
 ## 5. 데이터/트랜잭션 기준
 
@@ -73,15 +83,22 @@ src/
 
 ## 9. 설정 관리
 
-- 환경 변수는 타입 검증 후 부팅한다.
+- `pydantic-settings`로 환경 변수를 타입 검증 후 로드한다.
 - 실행 프로필(`local`, `dev`, `staging`, `prod`)을 분리한다.
 - 필수 설정 누락 시 서버는 즉시 실패(fail-fast)한다.
 
-## 10. 초기 기술 결정 체크리스트
+## 10. 확정 기술 스택
 
-- [ ] 런타임/언어 선택
-- [ ] 웹 프레임워크 선택
-- [ ] DB 및 마이그레이션 도구 선택
-- [ ] 인증 방식(JWT/OAuth2/세션) 선택
-- [ ] 메시지 브로커/캐시 필요 여부
-- [ ] 로그/메트릭/트레이싱 스택 선택
+- 언어/런타임: `Python 3.12` (권장)
+- 웹 프레임워크: `FastAPI`
+- ASGI 서버: `Uvicorn` (Render start command에서 사용)
+- 데이터 검증: `Pydantic v2`
+- ORM/DB: `SQLAlchemy 2.x` + `Alembic`
+- 배포 플랫폼: `Render Web Service`
+
+## 11. Render 운영 기준
+
+- 프로세스는 단일 컨테이너 내 `uvicorn` 프로세스로 시작한다.
+- Health check 엔드포인트(`/health`)를 반드시 제공한다.
+- 환경 변수는 Render Dashboard에서 관리한다.
+- 배포 시 마이그레이션 필요하면 `preDeployCommand` 또는 별도 잡으로 실행한다.

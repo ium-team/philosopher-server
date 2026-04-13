@@ -13,6 +13,7 @@
 
 - 아키텍처 경계는 `docs/ARCHITECTURE.md`를 우선 따른다.
 - 스타일/네이밍/리뷰 기준은 `docs/CODE_CONVENTION.md`를 따른다.
+- FastAPI 라우터는 얇게 유지하고, 비즈니스 로직은 `application/domain`으로 이동한다.
 - 새 기능에는 가능한 범위에서 테스트를 함께 추가한다.
 - 하위 호환성에 영향이 있으면 변경 내용을 명시한다.
 
@@ -30,6 +31,12 @@
 4. 테스트/린트/정적 검사 등을 실행한다.
 5. 변경 파일, 핵심 이유, 검증 결과를 보고한다.
 
+권장 검증 명령:
+
+- `pytest -q`
+- `ruff check .`
+- `black --check .`
+
 ## 5. 응답 형식
 
 - 결과 먼저: 무엇을 바꿨는지 한 줄 요약
@@ -44,3 +51,4 @@
 - 계층/폴더 구조 변경 -> `docs/ARCHITECTURE.md`
 - 네이밍/리뷰/테스트 규칙 변경 -> `docs/CODE_CONVENTION.md`
 - 자동화 작업 방식 변경 -> `AGENT.md`
+- Render 배포/환경 변수 규칙 변경 -> `docs/DEPLOY_RENDER.md`
