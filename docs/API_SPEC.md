@@ -11,6 +11,7 @@
 
 - 콘텐츠 타입: `application/json`
 - 인증: `/api/v1` 하위 대부분 엔드포인트는 `Authorization: Bearer <Supabase Access Token>` 필요
+- JWT 검증: Supabase JWKS 기반 서명 검증, `RS256`/`ES256` 알고리즘 허용
 - 공통 응답 포맷: 현재는 엔드포인트별 단순 JSON 응답 사용
 - 사용자 격리: 프로젝트/대화/메시지는 토큰의 `sub`(user id) 기준으로 분리 저장
 
