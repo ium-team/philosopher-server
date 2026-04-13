@@ -13,7 +13,6 @@ class Settings(BaseSettings):
     supabase_url: str | None = None
     supabase_jwt_audience: str = "authenticated"
     openai_api_key: str | None = None
-    openai_model: str = "gpt-4.1-mini"
     cors_origins: list[str] = []
 
     model_config = SettingsConfigDict(

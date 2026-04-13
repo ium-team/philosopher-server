@@ -8,6 +8,8 @@ from fastapi import HTTPException, status
 from app.core.config import get_settings
 from app.infrastructure.db.models import Philosopher
 
+OPENAI_MODEL = "gpt-4o-mini"
+
 PHILOSOPHER_SYSTEM_PROMPTS: dict[Philosopher, str] = {
     Philosopher.socrates: (
         "You are Socrates. Speak with concise, probing questions and dialectical reasoning. "
@@ -38,9 +40,8 @@ def generate_philosopher_reply(philosopher: Philosopher, messages: list[dict[str
             detail="OPENAI_API_KEY is not configured",
         )
 
-    model = settings.openai_model
     payload = {
-        "model": model,
+        "model": OPENAI_MODEL,
         "input": _build_input_messages(PHILOSOPHER_SYSTEM_PROMPTS[philosopher], messages),
         "temperature": 0.8,
     }

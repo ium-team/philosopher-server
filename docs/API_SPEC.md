@@ -12,6 +12,7 @@
 - 콘텐츠 타입: `application/json`
 - 인증: `/api/v1` 하위 대부분 엔드포인트는 `Authorization: Bearer <Supabase Access Token>` 필요
 - 공통 응답 포맷: 현재는 엔드포인트별 단순 JSON 응답 사용
+- 사용자 격리: 프로젝트/대화/메시지는 토큰의 `sub`(user id) 기준으로 분리 저장
 
 ## 3. 엔드포인트 명세
 
@@ -116,6 +117,12 @@
 }
 ```
 
+주요 오류 응답:
+
+- `404`: 다른 사용자 소유 대화 또는 존재하지 않는 대화 (`Conversation not found`)
+- `503`: `OPENAI_API_KEY` 누락 (`OPENAI_API_KEY is not configured`)
+- `502`: OpenAI 호출 실패/빈 응답
+
 ### 3.9 `GET /api/v1/chat/conversations/{conversation_id}/messages`
 
 대화 메시지 히스토리를 시간순으로 조회합니다.
@@ -124,20 +131,30 @@
 
 - `DATABASE_URL`: 미설정 시 `sqlite:///./.local/philosopher.db` 사용
 - `OPENAI_API_KEY`: 철학자 AI 응답 생성에 필요
-- `OPENAI_MODEL`: 기본값 `gpt-4.1-mini`
+- 모델은 서버에서 `gpt-4o-mini`로 고정
 
-## 5. 자동 생성 OpenAPI 문서
+## 5. AI 연동 정책
+
+- OpenAI API: `POST /v1/responses`
+- 모델: `gpt-4o-mini` (환경변수로 변경 불가)
+- 철학자 시스템 프롬프트는 서버에서 고정 관리:
+  - `socrates`
+  - `nietzsche`
+  - `hannah_arendt`
+
+## 6. 자동 생성 OpenAPI 문서
 
 - Swagger UI: `GET /docs`
 - ReDoc: `GET /redoc`
 - OpenAPI JSON: `GET /openapi.json`
 
-## 6. 버전 정책
+## 7. 버전 정책
 
 - 현재 버전: `v1`
 - 하위 호환성을 깨는 변경은 신규 버전 Prefix(예: `/api/v2`)로 분리합니다.
 
-## 7. 변경 이력
+## 8. 변경 이력
 
 - `2026-04-13`: 헬스체크/인증 API 추가
 - `2026-04-13`: 프로젝트/철학자 대화/메시지 저장 API 추가
+- `2026-04-13`: OpenAI 모델 `gpt-4o-mini` 고정 정책 반영
