@@ -7,93 +7,39 @@
 - API 버전 Prefix: `/api/v1`
 - 문서 기준일: `2026-04-13`
 
-기본적으로 헬스체크 엔드포인트는 아래 2개를 제공합니다.
-
-- 루트 헬스체크: `GET /health`
-- v1 헬스체크: `GET /api/v1/health`
-
 ## 2. 공통 규약
 
 - 콘텐츠 타입: `application/json`
-- 인증: `GET /api/v1/me`는 `Authorization: Bearer <Supabase Access Token>` 필요
+- 인증: `/api/v1` 하위 대부분 엔드포인트는 `Authorization: Bearer <Supabase Access Token>` 필요
 - 공통 응답 포맷: 현재는 엔드포인트별 단순 JSON 응답 사용
 
 ## 3. 엔드포인트 명세
 
 ### 3.1 `GET /health`
 
-서비스 기본 상태를 확인하는 헬스체크 엔드포인트입니다.
-
-- Method: `GET`
-- Path: `/health`
-- Request Body: 없음
-- Query Parameter: 없음
-- Header: 없음
-
 성공 응답:
-
-- Status Code: `200 OK`
-- Body:
 
 ```json
 {
   "status": "ok"
 }
-```
-
-오류 응답:
-
-- 현재 구현 기준 커스텀 오류 스키마 없음 (FastAPI 기본 오류 포맷 사용)
-
-`curl` 예시:
-
-```bash
-curl -X GET http://localhost:8000/health
 ```
 
 ### 3.2 `GET /api/v1/health`
 
-버전 라우터(`/api/v1`) 기준 서비스 상태를 확인하는 헬스체크 엔드포인트입니다.
-
-- Method: `GET`
-- Path: `/api/v1/health`
-- Request Body: 없음
-- Query Parameter: 없음
-- Header: 없음
-
 성공 응답:
-
-- Status Code: `200 OK`
-- Body:
 
 ```json
 {
   "status": "ok"
 }
-```
-
-오류 응답:
-
-- 현재 구현 기준 커스텀 오류 스키마 없음 (FastAPI 기본 오류 포맷 사용)
-
-`curl` 예시:
-
-```bash
-curl -X GET http://localhost:8000/api/v1/health
 ```
 
 ### 3.3 `GET /api/v1/me`
 
 현재 로그인한 사용자 정보를 반환합니다.
 
-- Method: `GET`
-- Path: `/api/v1/me`
-- Header: `Authorization: Bearer <access_token>`
-
 성공 응답:
-
-- Status Code: `200 OK`
-- Body:
 
 ```json
 {
@@ -103,30 +49,95 @@ curl -X GET http://localhost:8000/api/v1/health
 }
 ```
 
-오류 응답:
+### 3.4 `POST /api/v1/chat/projects`
 
-- Status Code: `401 Unauthorized`
-- Body:
+사용자 프로젝트를 생성합니다.
+
+요청:
 
 ```json
 {
-  "detail": "Authorization bearer token is required"
+  "name": "윤리학 프로젝트",
+  "description": "도덕 철학 대화"
 }
 ```
 
-## 4. 자동 생성 OpenAPI 문서
+### 3.5 `GET /api/v1/chat/projects`
 
-FastAPI 기본 문서 경로는 아래와 같습니다.
+현재 사용자 프로젝트 목록을 반환합니다.
+
+### 3.6 `POST /api/v1/chat/projects/{project_id}/conversations`
+
+특정 프로젝트에 철학자 대화를 생성합니다.
+
+요청:
+
+```json
+{
+  "philosopher": "socrates",
+  "title": "정의란 무엇인가"
+}
+```
+
+- `philosopher` 허용값: `socrates`, `nietzsche`, `hannah_arendt`
+
+### 3.7 `GET /api/v1/chat/projects/{project_id}/conversations`
+
+프로젝트 단위 대화 목록을 조회합니다.
+
+### 3.8 `POST /api/v1/chat/conversations/{conversation_id}/messages`
+
+사용자 메시지를 저장하고, 선택된 철학자 페르소나로 AI 응답을 생성해 함께 저장합니다.
+
+요청:
+
+```json
+{
+  "content": "정의는 배울 수 있는가?"
+}
+```
+
+성공 응답:
+
+```json
+{
+  "user_message": {
+    "id": "...",
+    "role": "user",
+    "content": "정의는 배울 수 있는가?",
+    "created_at": "2026-04-13T14:21:00.000000Z"
+  },
+  "assistant_message": {
+    "id": "...",
+    "role": "assistant",
+    "content": "...",
+    "created_at": "2026-04-13T14:21:01.000000Z"
+  }
+}
+```
+
+### 3.9 `GET /api/v1/chat/conversations/{conversation_id}/messages`
+
+대화 메시지 히스토리를 시간순으로 조회합니다.
+
+## 4. 환경 변수
+
+- `DATABASE_URL`: 미설정 시 `sqlite:///./.local/philosopher.db` 사용
+- `OPENAI_API_KEY`: 철학자 AI 응답 생성에 필요
+- `OPENAI_MODEL`: 기본값 `gpt-4.1-mini`
+
+## 5. 자동 생성 OpenAPI 문서
 
 - Swagger UI: `GET /docs`
 - ReDoc: `GET /redoc`
 - OpenAPI JSON: `GET /openapi.json`
 
-## 5. 버전 정책
+## 6. 버전 정책
 
 - 현재 버전: `v1`
 - 하위 호환성을 깨는 변경은 신규 버전 Prefix(예: `/api/v2`)로 분리합니다.
 
-## 6. 변경 이력
+## 7. 변경 이력
 
-- `2026-04-13`: 최초 작성
+- `2026-04-13`: 헬스체크/인증 API 추가
+- `2026-04-13`: 프로젝트/철학자 대화/메시지 저장 API 추가

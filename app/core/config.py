@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     database_url: str | None = None
     supabase_url: str | None = None
     supabase_jwt_audience: str = "authenticated"
+    openai_api_key: str | None = None
+    openai_model: str = "gpt-4.1-mini"
     cors_origins: list[str] = []
 
     model_config = SettingsConfigDict(
@@ -40,6 +42,8 @@ class Settings(BaseSettings):
         if value is None:
             return None
         cleaned = value.strip()
+        if cleaned.startswith("postgresql://"):
+            cleaned = cleaned.replace("postgresql://", "postgresql+psycopg://", 1)
         return cleaned or None
 
     @field_validator("supabase_url", mode="before")
@@ -48,6 +52,14 @@ class Settings(BaseSettings):
         if value is None:
             return None
         cleaned = value.strip().rstrip("/")
+        return cleaned or None
+
+    @field_validator("openai_api_key", mode="before")
+    @classmethod
+    def normalize_openai_api_key(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = value.strip()
         return cleaned or None
 
     @model_validator(mode="after")
