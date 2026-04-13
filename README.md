@@ -21,3 +21,18 @@
 - API 명세: OpenAPI 또는 API Blueprint
 - 운영 문서: 배포/롤백/장애 대응 런북
 - ADR: 주요 설계 결정 이력 관리
+
+## 빠른 시작
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
+uvicorn app.main:app --reload
+```
+
+서버 실행 후:
+
+- Health check: `GET /health`
+- V1 health: `GET /api/v1/health`
+- Swagger UI: `GET /docs`
