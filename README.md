@@ -7,6 +7,7 @@
 - [아키텍처 가이드](./docs/ARCHITECTURE.md)
 - [코드 컨벤션](./docs/CODE_CONVENTION.md)
 - [Render 배포 가이드](./docs/DEPLOY_RENDER.md)
+- [API 명세](./docs/API_SPEC.md)
 - [에이전트 작업 가이드](./AGENT.md)
 
 ## 권장 진행 순서
