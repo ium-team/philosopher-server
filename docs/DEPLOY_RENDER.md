@@ -5,6 +5,7 @@
 - 서비스 타입: `Web Service`
 - 런타임: `Python`
 - 브랜치: `main`
+- Render 플랜: `free`
 
 ## 2. 기본 명령
 
@@ -22,9 +23,19 @@ uvicorn app.main:app --host 0.0.0.0 --port $PORT
 
 - `ENV=prod`
 - `PORT` (Render에서 자동 주입)
-- `DATABASE_URL` (DB 사용하는 경우)
+- `DATABASE_URL` (Supabase Postgres 연결 문자열)
 - `SECRET_KEY`
 - `CORS_ORIGINS` (쉼표 구분 또는 JSON 배열 형태)
+
+Supabase 권장값:
+
+- 앱 서버는 Supabase `pooler` 연결 문자열 우선 사용
+- 쿼리 파라미터에 `sslmode=require` 포함
+- SQLAlchemy(sync) 기준 DSN 예시:
+
+```text
+postgresql+psycopg://postgres.<project-ref>:<password>@aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require
+```
 
 ## 4. Health Check
 
@@ -50,7 +61,7 @@ services:
   - type: web
     name: philosopher-server
     runtime: python
-    plan: starter
+    plan: free
     branch: main
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
