@@ -29,8 +29,15 @@ def verify_supabase_access_token(token: str) -> dict[str, Any]:
             detail="SUPABASE_URL is not configured",
         )
 
-    jwks_url = _build_jwks_url(settings.supabase_url)
-    issuer = f"{settings.supabase_url}/auth/v1"
+    # Accept both SUPABASE_URL formats:
+    # - https://<project-ref>.supabase.co
+    # - https://<project-ref>.supabase.co/auth/v1
+    normalized_supabase_url = settings.supabase_url.rstrip("/")
+    if normalized_supabase_url.endswith("/auth/v1"):
+        normalized_supabase_url = normalized_supabase_url[: -len("/auth/v1")]
+
+    jwks_url = _build_jwks_url(normalized_supabase_url)
+    issuer = f"{normalized_supabase_url}/auth/v1"
 
     try:
         header = jwt.get_unverified_header(token)
