@@ -162,6 +162,14 @@ def test_pin_move_and_project_settings_instruction(monkeypatch: pytest.MonkeyPat
     assert move_back_res.status_code == 200
     assert move_back_res.json()["project_id"] == first_project_id
 
+    move_to_main_res = client.patch(
+        f"/api/v1/chat/conversations/{conversation_id}/project",
+        json={"project_id": None},
+    )
+    assert move_to_main_res.status_code == 200
+    assert move_to_main_res.json()["project_id"]
+    assert move_to_main_res.json()["project_id"] not in {first_project_id, second_project_id}
+
     send_message = client.post(
         f"/api/v1/chat/conversations/{conversation_id}/messages",
         json={"content": "지침 적용 확인"},

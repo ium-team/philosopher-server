@@ -20,6 +20,7 @@ class ProjectResponse(BaseModel):
     instruction: str | None
     is_pinned: bool
     created_at: datetime
+    updated_at: datetime | None
 
 
 class ConversationCreateRequest(BaseModel):
@@ -43,7 +44,7 @@ class ProjectSettingsUpdateRequest(BaseModel):
 
 
 class ConversationProjectMoveRequest(BaseModel):
-    project_id: str = Field(min_length=1, max_length=36)
+    project_id: str | None = Field(default=None, min_length=1, max_length=36)
 
 
 class ConversationResponse(BaseModel):

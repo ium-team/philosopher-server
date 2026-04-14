@@ -216,7 +216,11 @@ def move_conversation_project(
         select(Conversation).where(Conversation.id == conversation_id, Conversation.user_id == user_id),
         "Conversation not found",
     )
-    project = _fetch_visible_project_or_404(db, request.project_id, user_id)
+    project = (
+        _get_or_create_default_project(db, user_id)
+        if request.project_id is None
+        else _fetch_visible_project_or_404(db, request.project_id, user_id)
+    )
     conversation.project_id = project.id
     db.commit()
     db.refresh(conversation)

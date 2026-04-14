@@ -134,6 +134,7 @@
 ### 3.11 `PATCH /api/v1/chat/conversations/{conversation_id}/project`
 
 대화의 소속 프로젝트를 변경합니다(프로젝트 이동).
+- `project_id`가 `null`이면 사용자 기본 프로젝트(숨김)로 이동합니다.
 
 요청:
 
