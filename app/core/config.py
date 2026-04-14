@@ -16,6 +16,12 @@ class Settings(BaseSettings):
     supabase_jwt_audience: str = "authenticated"
     supabase_jwt_secret: str | None = None
     openai_api_key: str | None = None
+    tts_openai_model: str = "gpt-4o-mini-tts"
+    tts_timeout_seconds: float = 8.0
+    tts_retry_count: int = 1
+    tts_max_chars: int = 2000
+    tts_chunk_chars: int = 500
+    tts_rate_limit_per_minute: int = 20
     cors_origins: Annotated[list[str], NoDecode] = []
 
     model_config = SettingsConfigDict(
@@ -83,10 +89,27 @@ class Settings(BaseSettings):
         cleaned = value.strip()
         return cleaned or None
 
+    @field_validator("tts_openai_model", mode="before")
+    @classmethod
+    def normalize_tts_openai_model(cls, value: str) -> str:
+        return value.strip() if value else "gpt-4o-mini-tts"
+
     @model_validator(mode="after")
     def validate_prod_settings(self) -> "Settings":
         if self.env == "prod" and not self.secret_key:
             raise ValueError("SECRET_KEY must be set when ENV=prod")
+        if self.tts_timeout_seconds <= 0:
+            raise ValueError("TTS_TIMEOUT_SECONDS must be greater than 0")
+        if self.tts_retry_count < 0:
+            raise ValueError("TTS_RETRY_COUNT must be greater than or equal to 0")
+        if self.tts_max_chars <= 0:
+            raise ValueError("TTS_MAX_CHARS must be greater than 0")
+        if self.tts_chunk_chars <= 0:
+            raise ValueError("TTS_CHUNK_CHARS must be greater than 0")
+        if self.tts_chunk_chars > self.tts_max_chars:
+            raise ValueError("TTS_CHUNK_CHARS must be less than or equal to TTS_MAX_CHARS")
+        if self.tts_rate_limit_per_minute <= 0:
+            raise ValueError("TTS_RATE_LIMIT_PER_MINUTE must be greater than 0")
         return self
 
 
