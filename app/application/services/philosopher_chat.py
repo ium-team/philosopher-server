@@ -26,7 +26,17 @@ PHILOSOPHER_SYSTEM_PROMPTS: dict[Philosopher, str] = {
 }
 
 
-def _build_input_messages(system_prompt: str, messages: list[dict[str, str]]) -> list[dict[str, str]]:
+def _build_input_messages(
+    system_prompt: str,
+    messages: list[dict[str, str]],
+    project_instruction: str | None = None,
+) -> list[dict[str, str]]:
+    if project_instruction is not None and project_instruction.strip():
+        system_prompt = (
+            f"{system_prompt}\n\n"
+            "Project instruction:\n"
+            f"{project_instruction.strip()}"
+        )
     payload: list[dict[str, str]] = [{"role": "system", "content": system_prompt}]
     payload.extend(messages)
     return payload
@@ -60,7 +70,11 @@ def _extract_output_text(data: dict[str, Any]) -> str | None:
     return None
 
 
-def generate_philosopher_reply(philosopher: Philosopher, messages: list[dict[str, str]]) -> str:
+def generate_philosopher_reply(
+    philosopher: Philosopher,
+    messages: list[dict[str, str]],
+    project_instruction: str | None = None,
+) -> str:
     settings = get_settings()
     if not settings.openai_api_key:
         raise HTTPException(
@@ -70,7 +84,11 @@ def generate_philosopher_reply(philosopher: Philosopher, messages: list[dict[str
 
     payload = {
         "model": OPENAI_MODEL,
-        "input": _build_input_messages(PHILOSOPHER_SYSTEM_PROMPTS[philosopher], messages),
+        "input": _build_input_messages(
+            PHILOSOPHER_SYSTEM_PROMPTS[philosopher],
+            messages,
+            project_instruction=project_instruction,
+        ),
         "temperature": 0.8,
     }
 
