@@ -100,6 +100,12 @@ def test_tts_rate_limit_error_code(monkeypatch) -> None:  # type: ignore[no-unty
 
 
 def test_tts_retry_after_timeout(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    class _Settings:
+        openai_api_key = "test-key"
+        tts_openai_model = "gpt-4o-mini-tts"
+        tts_timeout_seconds = 8.0
+        tts_retry_count = 1
+
     class _Response:
         def __init__(self, status_code: int, content: bytes) -> None:
             self.status_code = status_code
@@ -123,6 +129,7 @@ def test_tts_retry_after_timeout(monkeypatch) -> None:  # type: ignore[no-untype
                 raise httpx.TimeoutException("timeout")
             return _Response(200, b"ID3ok")
 
+    monkeypatch.setattr("app.application.services.tts.get_settings", lambda: _Settings())
     monkeypatch.setattr("app.application.services.tts.httpx.Client", _Client)
 
     audio = _call_tts_provider(
