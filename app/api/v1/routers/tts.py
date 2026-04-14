@@ -34,11 +34,11 @@ def _error_response(error: TTSServiceError) -> JSONResponse:
     )
 
 
-@router.post("/tts")
+@router.post("/tts", response_model=None)
 def generate_tts(
     payload: dict[str, Any] = Body(...),
     claims: dict[str, Any] = Depends(get_current_user_claims),
-) -> Response | JSONResponse:
+) -> Response:
     try:
         request = TTSRequest.model_validate(payload)
     except ValidationError:
