@@ -69,6 +69,27 @@ def _fetch_visible_project_or_404(db: Session, project_id: str, user_id: str) ->
     )
 
 
+def _ensure_unique_project_name(
+    db: Session,
+    user_id: str,
+    name: str,
+    exclude_project_id: str | None = None,
+) -> None:
+    statement = select(Project).where(
+        Project.user_id == user_id,
+        Project.name == name,
+        Project.is_default.is_(False),
+    )
+    if exclude_project_id is not None:
+        statement = statement.where(Project.id != exclude_project_id)
+    duplicate_project = db.execute(statement).scalar_one_or_none()
+    if duplicate_project is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Project name already exists",
+        )
+
+
 @router.post("/projects", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
 def create_project(
     request: ProjectCreateRequest,
@@ -76,9 +97,11 @@ def create_project(
     db: Session = Depends(get_db_session),
 ) -> Project:
     user_id = _current_user_id(claims)
+    project_name = request.name.strip()
+    _ensure_unique_project_name(db, user_id, project_name)
     project = Project(
         user_id=user_id,
-        name=request.name.strip(),
+        name=project_name,
         description=request.description,
         instruction=request.instruction.strip() if request.instruction is not None else None,
     )
@@ -178,7 +201,9 @@ def update_project_settings(
     user_id = _current_user_id(claims)
     project = _fetch_visible_project_or_404(db, project_id, user_id)
     if request.name is not None:
-        project.name = request.name.strip()
+        project_name = request.name.strip()
+        _ensure_unique_project_name(db, user_id, project_name, exclude_project_id=project.id)
+        project.name = project_name
     if request.instruction is not None:
         project.instruction = request.instruction.strip()
     db.commit()

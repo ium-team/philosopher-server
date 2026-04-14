@@ -88,6 +88,31 @@ def test_user_cannot_access_other_users_project() -> None:
     app.dependency_overrides.clear()
 
 
+def test_cannot_create_project_with_duplicate_name_for_same_user() -> None:
+    _set_user("dup-user")
+
+    first_create = client.post("/api/v1/chat/projects", json={"name": "중복 이름"})
+    assert first_create.status_code == 201
+
+    duplicate_create = client.post("/api/v1/chat/projects", json={"name": "중복 이름"})
+    assert duplicate_create.status_code == 409
+    assert duplicate_create.json()["detail"] == "Project name already exists"
+
+    app.dependency_overrides.clear()
+
+
+def test_duplicate_project_name_allowed_for_different_users() -> None:
+    _set_user("dup-owner-1")
+    owner_create = client.post("/api/v1/chat/projects", json={"name": "같은 이름"})
+    assert owner_create.status_code == 201
+
+    _set_user("dup-owner-2")
+    other_create = client.post("/api/v1/chat/projects", json={"name": "같은 이름"})
+    assert other_create.status_code == 201
+
+    app.dependency_overrides.clear()
+
+
 def test_create_default_conversation_without_visible_default_project() -> None:
     _set_user("default-owner")
 
@@ -172,6 +197,25 @@ def test_move_and_project_settings_instruction(monkeypatch: pytest.MonkeyPatch) 
     )
     assert send_message.status_code == 200
     assert captured["instruction"] == "항상 3줄로 답해줘"
+
+    app.dependency_overrides.clear()
+
+
+def test_cannot_rename_project_to_existing_name() -> None:
+    _set_user("dup-rename-user")
+
+    first_project = client.post("/api/v1/chat/projects", json={"name": "프로젝트 A"})
+    second_project = client.post("/api/v1/chat/projects", json={"name": "프로젝트 B"})
+    assert first_project.status_code == 201
+    assert second_project.status_code == 201
+    second_project_id = second_project.json()["id"]
+
+    rename_to_duplicate = client.patch(
+        f"/api/v1/chat/projects/{second_project_id}/settings",
+        json={"name": "프로젝트 A"},
+    )
+    assert rename_to_duplicate.status_code == 409
+    assert rename_to_duplicate.json()["detail"] == "Project name already exists"
 
     app.dependency_overrides.clear()
 
