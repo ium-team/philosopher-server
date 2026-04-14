@@ -18,7 +18,6 @@ class ProjectResponse(BaseModel):
     name: str
     description: str | None
     instruction: str | None
-    is_pinned: bool
     created_at: datetime
     updated_at: datetime | None
 
@@ -26,10 +25,6 @@ class ProjectResponse(BaseModel):
 class ConversationCreateRequest(BaseModel):
     philosopher: Philosopher
     title: str | None = Field(default=None, max_length=200)
-
-
-class ProjectPinUpdateRequest(BaseModel):
-    is_pinned: bool
 
 
 class ProjectSettingsUpdateRequest(BaseModel):

@@ -107,7 +107,7 @@ def test_create_default_conversation_without_visible_default_project() -> None:
     app.dependency_overrides.clear()
 
 
-def test_pin_move_and_project_settings_instruction(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_move_and_project_settings_instruction(monkeypatch: pytest.MonkeyPatch) -> None:
     _set_user("user-settings")
     captured: dict[str, str | None] = {"instruction": None}
 
@@ -124,14 +124,10 @@ def test_pin_move_and_project_settings_instruction(monkeypatch: pytest.MonkeyPat
     first_project_id = first_project.json()["id"]
     second_project_id = second_project.json()["id"]
 
-    pin_res = client.patch(f"/api/v1/chat/projects/{second_project_id}/pin", json={"is_pinned": True})
-    assert pin_res.status_code == 200
-    assert pin_res.json()["is_pinned"] is True
-
     project_list_res = client.get("/api/v1/chat/projects")
     assert project_list_res.status_code == 200
     project_list = project_list_res.json()
-    assert [project["id"] for project in project_list] == [second_project_id, first_project_id]
+    assert {project["id"] for project in project_list} == {second_project_id, first_project_id}
 
     update_settings = client.patch(
         f"/api/v1/chat/projects/{first_project_id}/settings",

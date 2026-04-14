@@ -1,7 +1,7 @@
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import Select, desc, select
+from sqlalchemy import Select, select
 from sqlalchemy.orm import Session
 
 from app.api.v1.dependencies.auth import get_current_user_claims
@@ -13,7 +13,6 @@ from app.api.v1.schemas.chat import (
     MessageResponse,
     MessageSendRequest,
     ProjectCreateRequest,
-    ProjectPinUpdateRequest,
     ProjectResponse,
     ProjectSettingsUpdateRequest,
 )
@@ -52,7 +51,6 @@ def _get_or_create_default_project(db: Session, user_id: str) -> Project:
         user_id=user_id,
         name="DEFAULT",
         is_default=True,
-        is_pinned=False,
     )
     db.add(default_project)
     db.flush()
@@ -99,7 +97,7 @@ def list_projects(
     statement = (
         select(Project)
         .where(Project.user_id == user_id, Project.is_default.is_(False))
-        .order_by(desc(Project.is_pinned), Project.updated_at.desc(), Project.created_at.desc())
+        .order_by(Project.updated_at.desc(), Project.created_at.desc())
     )
     return list(db.execute(statement).scalars().all())
 
@@ -168,21 +166,6 @@ def list_conversations(
         .order_by(Conversation.created_at.desc())
     )
     return list(db.execute(statement).scalars().all())
-
-
-@router.patch("/projects/{project_id}/pin", response_model=ProjectResponse)
-def update_project_pin(
-    project_id: str,
-    request: ProjectPinUpdateRequest,
-    claims: dict[str, Any] = Depends(get_current_user_claims),
-    db: Session = Depends(get_db_session),
-) -> Project:
-    user_id = _current_user_id(claims)
-    project = _fetch_visible_project_or_404(db, project_id, user_id)
-    project.is_pinned = request.is_pinned
-    db.commit()
-    db.refresh(project)
-    return project
 
 
 @router.patch("/projects/{project_id}/settings", response_model=ProjectResponse)
