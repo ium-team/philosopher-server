@@ -174,3 +174,87 @@ def test_move_and_project_settings_instruction(monkeypatch: pytest.MonkeyPatch) 
     assert captured["instruction"] == "항상 3줄로 답해줘"
 
     app.dependency_overrides.clear()
+
+
+def test_delete_conversation_removes_only_target_conversation(monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_user("delete-conv-user")
+    monkeypatch.setattr(
+        "app.api.v1.routers.chat.generate_philosopher_reply",
+        lambda philosopher, messages, project_instruction=None: f"[{philosopher.value}] ok",
+    )
+
+    project_res = client.post("/api/v1/chat/projects", json={"name": "삭제 테스트 프로젝트"})
+    assert project_res.status_code == 201
+    project_id = project_res.json()["id"]
+
+    first_conv = client.post(
+        f"/api/v1/chat/projects/{project_id}/conversations",
+        json={"philosopher": "socrates", "title": "삭제 대상"},
+    )
+    second_conv = client.post(
+        f"/api/v1/chat/projects/{project_id}/conversations",
+        json={"philosopher": "nietzsche", "title": "유지 대상"},
+    )
+    assert first_conv.status_code == 201
+    assert second_conv.status_code == 201
+    first_conv_id = first_conv.json()["id"]
+    second_conv_id = second_conv.json()["id"]
+
+    send_message = client.post(
+        f"/api/v1/chat/conversations/{first_conv_id}/messages",
+        json={"content": "이 메시지는 함께 삭제되어야 함"},
+    )
+    assert send_message.status_code == 200
+
+    delete_res = client.delete(f"/api/v1/chat/conversations/{first_conv_id}")
+    assert delete_res.status_code == 204
+    assert delete_res.text == ""
+
+    deleted_messages = client.get(f"/api/v1/chat/conversations/{first_conv_id}/messages")
+    assert deleted_messages.status_code == 404
+    assert deleted_messages.json()["detail"] == "Conversation not found"
+
+    remained_messages = client.get(f"/api/v1/chat/conversations/{second_conv_id}/messages")
+    assert remained_messages.status_code == 200
+    assert remained_messages.json() == []
+
+    app.dependency_overrides.clear()
+
+
+def test_delete_project_cascades_conversations_and_messages(monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_user("delete-project-user")
+    monkeypatch.setattr(
+        "app.api.v1.routers.chat.generate_philosopher_reply",
+        lambda philosopher, messages, project_instruction=None: f"[{philosopher.value}] ok",
+    )
+
+    project_res = client.post("/api/v1/chat/projects", json={"name": "삭제할 프로젝트"})
+    assert project_res.status_code == 201
+    project_id = project_res.json()["id"]
+
+    conversation_res = client.post(
+        f"/api/v1/chat/projects/{project_id}/conversations",
+        json={"philosopher": "hannah_arendt", "title": "하위 대화"},
+    )
+    assert conversation_res.status_code == 201
+    conversation_id = conversation_res.json()["id"]
+
+    send_message = client.post(
+        f"/api/v1/chat/conversations/{conversation_id}/messages",
+        json={"content": "프로젝트 삭제 시 함께 삭제"},
+    )
+    assert send_message.status_code == 200
+
+    delete_res = client.delete(f"/api/v1/chat/projects/{project_id}")
+    assert delete_res.status_code == 204
+    assert delete_res.text == ""
+
+    project_conversations = client.get(f"/api/v1/chat/projects/{project_id}/conversations")
+    assert project_conversations.status_code == 404
+    assert project_conversations.json()["detail"] == "Project not found"
+
+    conversation_messages = client.get(f"/api/v1/chat/conversations/{conversation_id}/messages")
+    assert conversation_messages.status_code == 404
+    assert conversation_messages.json()["detail"] == "Conversation not found"
+
+    app.dependency_overrides.clear()
