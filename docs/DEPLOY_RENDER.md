@@ -26,6 +26,7 @@ uvicorn app.main:app --host 0.0.0.0 --port $PORT
 - `DATABASE_URL` (Supabase Postgres 연결 문자열)
 - `SUPABASE_URL` (예: `https://<project-ref>.supabase.co`)
 - `SUPABASE_JWT_AUDIENCE` (기본값 `authenticated`)
+- `SUPABASE_JWT_SECRET` (`HS256` 토큰 검증을 사용할 때 필수)
 - `SECRET_KEY`
 - `CORS_ORIGINS` (쉼표 구분 또는 JSON 배열 형태)
 
@@ -38,6 +39,11 @@ Supabase 권장값:
 ```text
 postgresql+psycopg://postgres.<project-ref>:<password>@aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require
 ```
+
+JWT 검증 방식:
+
+- `RS256/ES256`(JWKS) 토큰이면 `SUPABASE_URL`만으로 검증 가능
+- `HS256` 토큰이면 `SUPABASE_JWT_SECRET`를 함께 설정해야 함
 
 ## 4. Health Check
 
