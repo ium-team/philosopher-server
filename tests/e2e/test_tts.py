@@ -72,6 +72,42 @@ def test_tts_invalid_payload_returns_error_code() -> None:
     app.dependency_overrides.clear()
 
 
+def test_tts_text_too_long_returns_domain_error() -> None:
+    _set_user("tts-too-long")
+    response = client.post(
+        "/api/v1/tts",
+        json={
+            "philosopher_id": "socrates",
+            "text": "a" * 2001,
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "error_code": "TTS_TEXT_TOO_LONG",
+        "message": "Text length must be less than or equal to 2000",
+    }
+    app.dependency_overrides.clear()
+
+
+def test_tts_empty_after_preprocessing_returns_invalid_text() -> None:
+    _set_user("tts-empty")
+    response = client.post(
+        "/api/v1/tts",
+        json={
+            "philosopher_id": "hannah_arendt",
+            "text": "  ### **__~~  ",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "error_code": "TTS_INVALID_TEXT",
+        "message": "Text is empty after preprocessing",
+    }
+    app.dependency_overrides.clear()
+
+
 def test_tts_rate_limit_error_code(monkeypatch) -> None:  # type: ignore[no-untyped-def]
     _set_user("tts-rate-limit")
 
