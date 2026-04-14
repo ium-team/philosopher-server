@@ -60,7 +60,8 @@
 ```json
 {
   "name": "윤리학 프로젝트",
-  "description": "도덕 철학 대화"
+  "description": "도덕 철학 대화",
+  "instruction": "항상 핵심 요약 3줄을 마지막에 추가"
 }
 ```
 
@@ -68,7 +69,50 @@
 
 현재 사용자 프로젝트 목록을 반환합니다.
 
-### 3.6 `POST /api/v1/chat/projects/{project_id}/conversations`
+- 기본 프로젝트(`is_default=true`)는 내부 개념으로만 사용되며 목록에 노출되지 않습니다.
+- 목록 정렬: `is_pinned` 내림차순, `updated_at` 내림차순, `created_at` 내림차순
+
+### 3.6 `PATCH /api/v1/chat/projects/{project_id}/pin`
+
+프로젝트 고정 여부를 수정합니다.
+
+요청:
+
+```json
+{
+  "is_pinned": true
+}
+```
+
+### 3.7 `PATCH /api/v1/chat/projects/{project_id}/settings`
+
+프로젝트 설정을 수정합니다.
+
+요청(필드 중 최소 1개 필요):
+
+```json
+{
+  "name": "윤리학 프로젝트 v2",
+  "instruction": "답변 전에 반례를 먼저 검토해"
+}
+```
+
+### 3.8 `POST /api/v1/chat/conversations`
+
+일반 채팅용 대화를 생성합니다.
+
+- 서버는 사용자별 기본 프로젝트(숨김)를 내부적으로 생성/재사용하며, 사용자는 기본 프로젝트를 직접 볼 필요가 없습니다.
+
+요청:
+
+```json
+{
+  "philosopher": "socrates",
+  "title": "일반 채팅"
+}
+```
+
+### 3.9 `POST /api/v1/chat/projects/{project_id}/conversations`
 
 특정 프로젝트에 철학자 대화를 생성합니다.
 
@@ -83,11 +127,23 @@
 
 - `philosopher` 허용값: `socrates`, `nietzsche`, `hannah_arendt`
 
-### 3.7 `GET /api/v1/chat/projects/{project_id}/conversations`
+### 3.10 `GET /api/v1/chat/projects/{project_id}/conversations`
 
 프로젝트 단위 대화 목록을 조회합니다.
 
-### 3.8 `POST /api/v1/chat/conversations/{conversation_id}/messages`
+### 3.11 `PATCH /api/v1/chat/conversations/{conversation_id}/project`
+
+대화의 소속 프로젝트를 변경합니다(프로젝트 이동).
+
+요청:
+
+```json
+{
+  "project_id": "target-project-id"
+}
+```
+
+### 3.12 `POST /api/v1/chat/conversations/{conversation_id}/messages`
 
 사용자 메시지를 저장하고, 선택된 철학자 페르소나로 AI 응답을 생성해 함께 저장합니다.
 
@@ -124,7 +180,7 @@
 - `503`: `OPENAI_API_KEY` 누락 (`OPENAI_API_KEY is not configured`)
 - `502`: OpenAI 호출 실패/빈 응답
 
-### 3.9 `GET /api/v1/chat/conversations/{conversation_id}/messages`
+### 3.13 `GET /api/v1/chat/conversations/{conversation_id}/messages`
 
 대화 메시지 히스토리를 시간순으로 조회합니다.
 
@@ -142,6 +198,7 @@
   - `socrates`
   - `nietzsche`
   - `hannah_arendt`
+- 프로젝트에 `instruction`이 설정된 경우, 철학자 시스템 프롬프트 뒤에 결합되어 대화 생성에 반영됩니다.
 
 ## 6. 자동 생성 OpenAPI 문서
 
@@ -159,3 +216,6 @@
 - `2026-04-13`: 헬스체크/인증 API 추가
 - `2026-04-13`: 프로젝트/철학자 대화/메시지 저장 API 추가
 - `2026-04-13`: OpenAI 모델 `gpt-4o-mini` 고정 정책 반영
+- `2026-04-14`: 프로젝트 고정/이동/설정 수정 API 추가
+- `2026-04-14`: 일반 채팅용 기본 프로젝트(숨김) 개념 도입
+- `2026-04-14`: 프로젝트 지침(`instruction`) AI 반영
