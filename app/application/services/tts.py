@@ -21,19 +21,19 @@ class VoiceProfile:
 
 VOICE_PROFILES: dict[Philosopher, VoiceProfile] = {
     Philosopher.socrates: VoiceProfile(
-        voice_id="sage",
-        speed=0.95,
-        style="Calm and probing, with crisp articulation and reflective pacing.",
+        voice_id="onyx",
+        speed=0.93,
+        style="Warm low male voice, calm and probing, deliberate pauses for reflective questioning.",
     ),
     Philosopher.nietzsche: VoiceProfile(
-        voice_id="onyx",
-        speed=1.05,
-        style="Energetic and intense, with emphatic phrasing and sharp cadence.",
+        voice_id="echo",
+        speed=1.08,
+        style="Bright male voice with sharp contrast, energetic emphasis, and assertive cadence.",
     ),
     Philosopher.hannah_arendt: VoiceProfile(
-        voice_id="alloy",
-        speed=0.98,
-        style="Measured and clear, with precise diction and analytical tone.",
+        voice_id="nova",
+        speed=0.96,
+        style="Clear female voice, composed and analytical, precise diction with steady pacing.",
     ),
 }
 
