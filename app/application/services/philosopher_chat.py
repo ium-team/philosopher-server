@@ -32,6 +32,34 @@ def _build_input_messages(system_prompt: str, messages: list[dict[str, str]]) ->
     return payload
 
 
+def _extract_output_text(data: dict[str, Any]) -> str | None:
+    output_text = data.get("output_text")
+    if isinstance(output_text, str) and output_text.strip():
+        return output_text.strip()
+
+    output = data.get("output")
+    if not isinstance(output, list):
+        return None
+
+    chunks: list[str] = []
+    for item in output:
+        if not isinstance(item, dict):
+            continue
+        content = item.get("content")
+        if not isinstance(content, list):
+            continue
+        for block in content:
+            if not isinstance(block, dict):
+                continue
+            text = block.get("text")
+            if isinstance(text, str) and text.strip():
+                chunks.append(text.strip())
+
+    if chunks:
+        return "\n".join(chunks)
+    return None
+
+
 def generate_philosopher_reply(philosopher: Philosopher, messages: list[dict[str, str]]) -> str:
     settings = get_settings()
     if not settings.openai_api_key:
@@ -72,9 +100,9 @@ def generate_philosopher_reply(philosopher: Philosopher, messages: list[dict[str
         ) from exc
 
     data: dict[str, Any] = response.json()
-    text = data.get("output_text")
-    if isinstance(text, str) and text.strip():
-        return text.strip()
+    text = _extract_output_text(data)
+    if text:
+        return text
 
     raise HTTPException(
         status_code=status.HTTP_502_BAD_GATEWAY,

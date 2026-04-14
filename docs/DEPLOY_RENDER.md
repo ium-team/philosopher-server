@@ -27,6 +27,7 @@ uvicorn app.main:app --host 0.0.0.0 --port $PORT
 - `SUPABASE_URL` (예: `https://<project-ref>.supabase.co`)
 - `SUPABASE_JWT_AUDIENCE` (기본값 `authenticated`)
 - `SUPABASE_JWT_SECRET` (`HS256` 토큰 검증을 사용할 때 필수)
+- `OPENAI_API_KEY` (철학자 답변 생성에 필수)
 - `SECRET_KEY`
 - `CORS_ORIGINS` (쉼표 구분 또는 JSON 배열 형태)
 
