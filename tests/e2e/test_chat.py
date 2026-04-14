@@ -302,3 +302,52 @@ def test_delete_project_cascades_conversations_and_messages(monkeypatch: pytest.
     assert conversation_messages.json()["detail"] == "Conversation not found"
 
     app.dependency_overrides.clear()
+
+
+def test_first_message_auto_sets_title_when_missing(monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_user("auto-title-user")
+    monkeypatch.setattr(
+        "app.api.v1.routers.chat.generate_philosopher_reply",
+        lambda philosopher, messages, project_instruction=None: f"[{philosopher.value}] ok",
+    )
+
+    project_res = client.post("/api/v1/chat/projects", json={"name": "자동 제목 프로젝트"})
+    assert project_res.status_code == 201
+    project_id = project_res.json()["id"]
+
+    create_conversation = client.post(
+        f"/api/v1/chat/projects/{project_id}/conversations",
+        json={"philosopher": "socrates"},
+    )
+    assert create_conversation.status_code == 201
+    conversation_id = create_conversation.json()["id"]
+    assert create_conversation.json()["title"] is None
+
+    first_message_text = "자유 의지와 책임은 어떤 관계가 있는가?"
+    first_send = client.post(
+        f"/api/v1/chat/conversations/{conversation_id}/messages",
+        json={"content": first_message_text},
+    )
+    assert first_send.status_code == 200
+
+    list_conversations = client.get(f"/api/v1/chat/projects/{project_id}/conversations")
+    assert list_conversations.status_code == 200
+    first_updated = next(
+        conversation for conversation in list_conversations.json() if conversation["id"] == conversation_id
+    )
+    assert first_updated["title"] == first_message_text
+
+    second_send = client.post(
+        f"/api/v1/chat/conversations/{conversation_id}/messages",
+        json={"content": "그럼 반례도 설명해줘"},
+    )
+    assert second_send.status_code == 200
+
+    list_conversations_again = client.get(f"/api/v1/chat/projects/{project_id}/conversations")
+    assert list_conversations_again.status_code == 200
+    second_updated = next(
+        conversation for conversation in list_conversations_again.json() if conversation["id"] == conversation_id
+    )
+    assert second_updated["title"] == first_message_text
+
+    app.dependency_overrides.clear()

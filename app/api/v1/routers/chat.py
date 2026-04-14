@@ -69,6 +69,13 @@ def _fetch_visible_project_or_404(db: Session, project_id: str, user_id: str) ->
     )
 
 
+def _derive_initial_conversation_title(content: str, max_length: int = 80) -> str:
+    normalized = " ".join(content.strip().split())
+    if len(normalized) <= max_length:
+        return normalized
+    return normalized[:max_length].rstrip()
+
+
 def _ensure_unique_project_name(
     db: Session,
     user_id: str,
@@ -324,6 +331,8 @@ def send_message(
         content=assistant_text,
     )
     db.add(assistant_message)
+    if conversation.title is None or not conversation.title.strip():
+        conversation.title = _derive_initial_conversation_title(user_message.content)
     db.commit()
     db.refresh(user_message)
     db.refresh(assistant_message)
