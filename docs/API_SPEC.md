@@ -211,10 +211,54 @@
 
 - `404`: 다른 사용자 소유 프로젝트 또는 존재하지 않는 프로젝트 (`Project not found`)
 
+### 3.15 `POST /api/v1/tts`
+
+철학자 고정 voice 매핑 기반으로 서버에서 Neural TTS를 생성하고, `audio/mpeg` 바이너리를 직접 반환합니다.
+
+요청:
+
+```json
+{
+  "philosopher_id": "socrates",
+  "text": "정의는 가르칠 수 있는가?"
+}
+```
+
+성공 응답:
+
+- `200 OK`
+- `Content-Type: audio/mpeg`
+- 응답 본문: MP3 바이너리
+
+요청 정책:
+
+- 텍스트 길이 제한: 최대 `2,000`자
+- 텍스트 전처리: 마크다운/특수기호 최소 정리
+- 내부 분할 처리: 긴 텍스트는 provider 요청 단위로 분할
+- timeout/retry: provider 호출당 `8초 timeout`, 실패 시 `1회 retry`
+- rate limit: 사용자 기준 분당 요청 제한 적용
+
+오류 응답(JSON):
+
+- `400` `TTS_INVALID_REQUEST`: 잘못된 요청 바디
+- `400` `TTS_INVALID_TEXT`: 전처리 후 텍스트가 비어 있음
+- `400` `TTS_TEXT_TOO_LONG`: 최대 길이 초과
+- `401` `TTS_UNAUTHORIZED`: 사용자 클레임 불량
+- `429` `TTS_RATE_LIMITED`: 요청 과다
+- `502` `TTS_PROVIDER_ERROR|TTS_PROVIDER_UNAVAILABLE`: provider 오류
+- `503` `TTS_NOT_CONFIGURED`: `OPENAI_API_KEY` 미설정
+- `504` `TTS_PROVIDER_TIMEOUT`: provider timeout
+
 ## 4. 환경 변수
 
 - `DATABASE_URL`: 미설정 시 `sqlite:///./.local/philosopher.db` 사용
 - `OPENAI_API_KEY`: 철학자 AI 응답 생성에 필요
+- `TTS_OPENAI_MODEL`: TTS 모델 (기본 `gpt-4o-mini-tts`)
+- `TTS_TIMEOUT_SECONDS`: provider timeout 초 (기본 `8`)
+- `TTS_RETRY_COUNT`: provider 재시도 횟수 (기본 `1`)
+- `TTS_MAX_CHARS`: 요청 텍스트 최대 길이 (기본 `2000`)
+- `TTS_CHUNK_CHARS`: provider 분할 호출 기준 길이 (기본 `500`)
+- `TTS_RATE_LIMIT_PER_MINUTE`: 사용자별 분당 요청 제한 (기본 `20`)
 - 모델은 서버에서 `gpt-4o-mini`로 고정
 
 ## 5. AI 연동 정책
