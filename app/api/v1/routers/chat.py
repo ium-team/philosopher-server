@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import Select, select
 from sqlalchemy.orm import Session
 
@@ -186,6 +186,19 @@ def update_project_settings(
     return project
 
 
+@router.delete("/projects/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_project(
+    project_id: str,
+    claims: dict[str, Any] = Depends(get_current_user_claims),
+    db: Session = Depends(get_db_session),
+) -> Response:
+    user_id = _current_user_id(claims)
+    project = _fetch_visible_project_or_404(db, project_id, user_id)
+    db.delete(project)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.patch("/conversations/{conversation_id}/project", response_model=ConversationResponse)
 def move_conversation_project(
     conversation_id: str,
@@ -208,6 +221,23 @@ def move_conversation_project(
     db.commit()
     db.refresh(conversation)
     return conversation
+
+
+@router.delete("/conversations/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_conversation(
+    conversation_id: str,
+    claims: dict[str, Any] = Depends(get_current_user_claims),
+    db: Session = Depends(get_db_session),
+) -> Response:
+    user_id = _current_user_id(claims)
+    conversation = _fetch_one_or_404(
+        db,
+        select(Conversation).where(Conversation.id == conversation_id, Conversation.user_id == user_id),
+        "Conversation not found",
+    )
+    db.delete(conversation)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/conversations/{conversation_id}/messages", response_model=list[MessageResponse])
