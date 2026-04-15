@@ -11,9 +11,12 @@ from app.infrastructure.db.base import Base
 
 
 class Philosopher(str, enum.Enum):
-    socrates = "socrates"
-    nietzsche = "nietzsche"
-    hannah_arendt = "hannah_arendt"
+    plato = "plato"
+    aristotle = "aristotle"
+    rene_descartes = "rene_descartes"
+    immanuel_kant = "immanuel_kant"
+    confucius = "confucius"
+    simone_de_beauvoir = "simone_de_beauvoir"
 
 
 class MessageRole(str, enum.Enum):

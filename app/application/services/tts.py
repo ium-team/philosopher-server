@@ -20,20 +20,35 @@ class VoiceProfile:
 
 
 VOICE_PROFILES: dict[Philosopher, VoiceProfile] = {
-    Philosopher.socrates: VoiceProfile(
+    Philosopher.plato: VoiceProfile(
         voice_id="onyx",
         speed=0.93,
-        style="Warm low male voice, calm and probing, deliberate pauses for reflective questioning.",
+        style="Composed male voice, reflective and dialogic, deliberate cadence that guides ideas upward.",
     ),
-    Philosopher.nietzsche: VoiceProfile(
+    Philosopher.aristotle: VoiceProfile(
         voice_id="echo",
-        speed=1.08,
-        style="Bright male voice with sharp contrast, energetic emphasis, and assertive cadence.",
+        speed=0.98,
+        style="Clear male voice with measured pacing, structured emphasis, and practical precision.",
     ),
-    Philosopher.hannah_arendt: VoiceProfile(
+    Philosopher.rene_descartes: VoiceProfile(
+        voice_id="alloy",
+        speed=0.97,
+        style="Focused male voice, calm and methodical, with crisp articulation for stepwise reasoning.",
+    ),
+    Philosopher.immanuel_kant: VoiceProfile(
+        voice_id="fable",
+        speed=0.92,
+        style="Steady male voice, formal and disciplined, emphasizing conceptual distinctions.",
+    ),
+    Philosopher.confucius: VoiceProfile(
         voice_id="nova",
         speed=0.96,
-        style="Clear female voice, composed and analytical, precise diction with steady pacing.",
+        style="Warm balanced voice, calm and instructive, with respectful tone and practical cadence.",
+    ),
+    Philosopher.simone_de_beauvoir: VoiceProfile(
+        voice_id="shimmer",
+        speed=1.0,
+        style="Thoughtful female voice, clear and firm, combining critical nuance with humane warmth.",
     ),
 }
 
