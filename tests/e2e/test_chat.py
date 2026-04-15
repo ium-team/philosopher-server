@@ -50,7 +50,7 @@ def test_project_conversation_and_message_flow(monkeypatch: pytest.MonkeyPatch) 
 
     create_conversation = client.post(
         f"/api/v1/chat/projects/{project_id}/conversations",
-        json={"philosopher": "socrates", "title": "정의란 무엇인가"},
+        json={"philosopher": "plato", "title": "정의란 무엇인가"},
     )
     assert create_conversation.status_code == 201
     conversation_id = create_conversation.json()["id"]
@@ -63,7 +63,7 @@ def test_project_conversation_and_message_flow(monkeypatch: pytest.MonkeyPatch) 
     payload = send_message.json()
     assert payload["user_message"]["role"] == "user"
     assert payload["assistant_message"]["role"] == "assistant"
-    assert "socrates" in payload["assistant_message"]["content"]
+    assert "plato" in payload["assistant_message"]["content"]
 
     list_messages = client.get(f"/api/v1/chat/conversations/{conversation_id}/messages")
     assert list_messages.status_code == 200
@@ -118,7 +118,7 @@ def test_create_default_conversation_without_visible_default_project() -> None:
 
     create_default_conversation = client.post(
         "/api/v1/chat/conversations",
-        json={"philosopher": "hannah_arendt", "title": "기본 대화"},
+        json={"philosopher": "confucius", "title": "기본 대화"},
     )
     assert create_default_conversation.status_code == 201
     payload = create_default_conversation.json()
@@ -164,7 +164,7 @@ def test_move_and_project_settings_instruction(monkeypatch: pytest.MonkeyPatch) 
 
     create_conversation = client.post(
         f"/api/v1/chat/projects/{first_project_id}/conversations",
-        json={"philosopher": "socrates"},
+        json={"philosopher": "plato"},
     )
     assert create_conversation.status_code == 201
     conversation_id = create_conversation.json()["id"]
@@ -183,6 +183,13 @@ def test_move_and_project_settings_instruction(monkeypatch: pytest.MonkeyPatch) 
     assert move_back_res.status_code == 200
     assert move_back_res.json()["project_id"] == first_project_id
 
+    send_message_before_move_to_main = client.post(
+        f"/api/v1/chat/conversations/{conversation_id}/messages",
+        json={"content": "프로젝트 지침 적용 확인"},
+    )
+    assert send_message_before_move_to_main.status_code == 200
+    assert captured["instruction"] == "항상 3줄로 답해줘"
+
     move_to_main_res = client.patch(
         f"/api/v1/chat/conversations/{conversation_id}/project",
         json={"project_id": None},
@@ -196,7 +203,7 @@ def test_move_and_project_settings_instruction(monkeypatch: pytest.MonkeyPatch) 
         json={"content": "지침 적용 확인"},
     )
     assert send_message.status_code == 200
-    assert captured["instruction"] == "항상 3줄로 답해줘"
+    assert captured["instruction"] is None
 
     app.dependency_overrides.clear()
 
@@ -233,11 +240,11 @@ def test_delete_conversation_removes_only_target_conversation(monkeypatch: pytes
 
     first_conv = client.post(
         f"/api/v1/chat/projects/{project_id}/conversations",
-        json={"philosopher": "socrates", "title": "삭제 대상"},
+        json={"philosopher": "plato", "title": "삭제 대상"},
     )
     second_conv = client.post(
         f"/api/v1/chat/projects/{project_id}/conversations",
-        json={"philosopher": "nietzsche", "title": "유지 대상"},
+        json={"philosopher": "aristotle", "title": "유지 대상"},
     )
     assert first_conv.status_code == 201
     assert second_conv.status_code == 201
@@ -278,7 +285,7 @@ def test_delete_project_cascades_conversations_and_messages(monkeypatch: pytest.
 
     conversation_res = client.post(
         f"/api/v1/chat/projects/{project_id}/conversations",
-        json={"philosopher": "hannah_arendt", "title": "하위 대화"},
+        json={"philosopher": "confucius", "title": "하위 대화"},
     )
     assert conversation_res.status_code == 201
     conversation_id = conversation_res.json()["id"]
@@ -317,7 +324,7 @@ def test_first_message_auto_sets_title_when_missing(monkeypatch: pytest.MonkeyPa
 
     create_conversation = client.post(
         f"/api/v1/chat/projects/{project_id}/conversations",
-        json={"philosopher": "socrates"},
+        json={"philosopher": "plato"},
     )
     assert create_conversation.status_code == 201
     conversation_id = create_conversation.json()["id"]
