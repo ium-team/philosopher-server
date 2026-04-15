@@ -50,7 +50,7 @@ def test_project_conversation_and_message_flow(monkeypatch: pytest.MonkeyPatch) 
 
     create_conversation = client.post(
         f"/api/v1/chat/projects/{project_id}/conversations",
-        json={"philosopher": "plato", "title": "정의란 무엇인가"},
+        json={"philosopher": "socrates", "title": "정의란 무엇인가"},
     )
     assert create_conversation.status_code == 201
     conversation_id = create_conversation.json()["id"]
@@ -63,7 +63,7 @@ def test_project_conversation_and_message_flow(monkeypatch: pytest.MonkeyPatch) 
     payload = send_message.json()
     assert payload["user_message"]["role"] == "user"
     assert payload["assistant_message"]["role"] == "assistant"
-    assert "plato" in payload["assistant_message"]["content"]
+    assert "socrates" in payload["assistant_message"]["content"]
 
     list_messages = client.get(f"/api/v1/chat/conversations/{conversation_id}/messages")
     assert list_messages.status_code == 200

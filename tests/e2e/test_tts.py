@@ -42,7 +42,7 @@ def test_tts_returns_audio_mpeg_binary(monkeypatch) -> None:  # type: ignore[no-
     response = client.post(
         "/api/v1/tts",
         json={
-            "philosopher_id": "plato",
+            "philosopher_id": "socrates",
             "text": "정의는 무엇인가?",
         },
     )
@@ -50,7 +50,7 @@ def test_tts_returns_audio_mpeg_binary(monkeypatch) -> None:  # type: ignore[no-
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("audio/mpeg")
     assert response.content == b"ID3\x00\x00mock-audio"
-    assert captured["philosopher_id"] == Philosopher.plato
+    assert captured["philosopher_id"] == Philosopher.socrates
     assert captured["rate_limit_key"] == "user:tts-user"
     app.dependency_overrides.clear()
 
@@ -77,7 +77,7 @@ def test_tts_text_too_long_returns_domain_error() -> None:
     response = client.post(
         "/api/v1/tts",
         json={
-            "philosopher_id": "plato",
+            "philosopher_id": "socrates",
             "text": "a" * 2001,
         },
     )
@@ -95,7 +95,7 @@ def test_tts_empty_after_preprocessing_returns_invalid_text() -> None:
     response = client.post(
         "/api/v1/tts",
         json={
-            "philosopher_id": "confucius",
+            "philosopher_id": "hannah_arendt",
             "text": "  ### **__~~  ",
         },
     )
@@ -122,7 +122,7 @@ def test_tts_rate_limit_error_code(monkeypatch) -> None:  # type: ignore[no-unty
     response = client.post(
         "/api/v1/tts",
         json={
-            "philosopher_id": "aristotle",
+            "philosopher_id": "nietzsche",
             "text": "한계를 시험한다.",
         },
     )
@@ -185,7 +185,7 @@ def test_synthesize_applies_rate_limit(monkeypatch) -> None:  # type: ignore[no-
     limiter = InMemoryRateLimiter(limit_per_minute=1)
 
     first = synthesize_philosopher_tts(
-        philosopher_id=Philosopher.confucius,
+        philosopher_id=Philosopher.hannah_arendt,
         text="공적 영역에서의 판단",
         rate_limit_key="user:a",
         limiter=limiter,
@@ -194,7 +194,7 @@ def test_synthesize_applies_rate_limit(monkeypatch) -> None:  # type: ignore[no-
 
     try:
         synthesize_philosopher_tts(
-            philosopher_id=Philosopher.confucius,
+            philosopher_id=Philosopher.hannah_arendt,
             text="두 번째 요청",
             rate_limit_key="user:a",
             limiter=limiter,

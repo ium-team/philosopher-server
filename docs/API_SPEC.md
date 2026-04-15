@@ -122,7 +122,7 @@
 }
 ```
 
-- `philosopher` 허용값: `plato`, `aristotle`, `rene_descartes`, `immanuel_kant`, `confucius`, `simone_de_beauvoir`
+- `philosopher` 허용값: `socrates`, `nietzsche`, `hannah_arendt`, `plato`, `aristotle`, `rene_descartes`, `immanuel_kant`, `confucius`, `simone_de_beauvoir`
 - `title`을 생략하면 `null`로 저장되며, 첫 메시지 전송 시 사용자 첫 메시지 기반으로 자동 제목이 설정됩니다.
 
 ### 3.9 `GET /api/v1/chat/projects/{project_id}/conversations`
@@ -266,6 +266,9 @@
 - OpenAI API: `POST /v1/responses`
 - 모델: `gpt-4o-mini` (환경변수로 변경 불가)
 - 철학자 시스템 프롬프트는 서버에서 고정 관리:
+  - `socrates`
+  - `nietzsche`
+  - `hannah_arendt`
   - `plato`
   - `aristotle`
   - `rene_descartes`

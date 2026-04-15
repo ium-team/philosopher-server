@@ -11,6 +11,9 @@ from app.infrastructure.db.base import Base
 
 
 class Philosopher(str, enum.Enum):
+    socrates = "socrates"
+    nietzsche = "nietzsche"
+    hannah_arendt = "hannah_arendt"
     plato = "plato"
     aristotle = "aristotle"
     rene_descartes = "rene_descartes"
