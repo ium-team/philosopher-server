@@ -5,7 +5,7 @@
 - 서비스명: `philosopher-server`
 - 프레임워크: `FastAPI`
 - API 버전 Prefix: `/api/v1`
-- 문서 기준일: `2026-04-14`
+- 문서 기준일: `2026-04-15`
 
 ## 2. 공통 규약
 
@@ -108,6 +108,8 @@
   "title": "일반 채팅"
 }
 ```
+
+- `philosopher` 허용값: `socrates`, `nietzsche`, `hannah_arendt`, `plato`, `aristotle`, `rene_descartes`, `immanuel_kant`, `confucius`, `simone_de_beauvoir`
 
 ### 3.8 `POST /api/v1/chat/projects/{project_id}/conversations`
 
@@ -224,6 +226,8 @@
 }
 ```
 
+- `philosopher_id` 허용값: `socrates`, `nietzsche`, `hannah_arendt`, `plato`, `aristotle`, `rene_descartes`, `immanuel_kant`, `confucius`, `simone_de_beauvoir`
+
 성공 응답:
 
 - `200 OK`
@@ -299,3 +303,4 @@
 - `2026-04-14`: 프로젝트 삭제/대화 삭제 API 추가
 - `2026-04-14`: 사용자별 프로젝트 이름 중복 방지(`409`) 추가
 - `2026-04-14`: 제목 없는 대화의 첫 메시지 전송 시 자동 제목 설정 추가
+- `2026-04-15`: 기존 3인(`socrates`, `nietzsche`, `hannah_arendt`) 유지 + 신규 6인 추가로 총 9인 지원
