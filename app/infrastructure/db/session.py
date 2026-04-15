@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import get_settings
 from app.infrastructure.db.base import Base
+from app.infrastructure.db.models import Conversation, Philosopher
 
 settings = get_settings()
 DATABASE_URL = settings.database_url or "sqlite:///./.local/philosopher.db"
@@ -48,12 +49,56 @@ def _ensure_projects_schema() -> None:
             connection.execute(text("CREATE INDEX ix_projects_is_pinned ON projects (is_pinned)"))
 
 
+def _quote_ident(value: str) -> str:
+    return value.replace('"', '""')
+
+
+def _quote_literal(value: str) -> str:
+    return value.replace("'", "''")
+
+
+def _ensure_philosopher_enum_schema() -> None:
+    with engine.begin() as connection:
+        if connection.dialect.name != "postgresql":
+            return
+
+        enum_type_name = Conversation.__table__.c.philosopher.type.name or "philosopher"
+        rows = connection.execute(
+            text(
+                """
+                SELECT e.enumlabel
+                FROM pg_type t
+                JOIN pg_enum e ON t.oid = e.enumtypid
+                WHERE t.typname = :enum_type_name
+                ORDER BY e.enumsortorder
+                """,
+            ),
+            {"enum_type_name": enum_type_name},
+        ).all()
+        existing_values = {str(row[0]) for row in rows}
+
+        if not existing_values:
+            return
+
+        escaped_type = _quote_ident(enum_type_name)
+        for philosopher in Philosopher:
+            if philosopher.value in existing_values:
+                continue
+            escaped_value = _quote_literal(philosopher.value)
+            connection.execute(
+                text(
+                    f"ALTER TYPE \"{escaped_type}\" ADD VALUE IF NOT EXISTS '{escaped_value}'",
+                ),
+            )
+
+
 def init_db() -> None:
     # Ensure model metadata is registered before create_all.
     from app.infrastructure.db import models  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
     _ensure_projects_schema()
+    _ensure_philosopher_enum_schema()
 
 
 def get_db_session() -> Generator[Session, None, None]:
